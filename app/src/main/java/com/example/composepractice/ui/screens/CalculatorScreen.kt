@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,21 +33,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.composepractice.viewmodel.CalculatorViewModel
 
-/**
- * CalculatorScreen — the "View" for the calculator.
- *
- * Buttons fill the FULL screen in both orientations, using a fixed
- * `RoundedCornerShape(20.dp)` so they never look like a stretched capsule
- * regardless of orientation. Font sizes adapt to orientation so text always
- * stays visible. Display box is slightly larger relative to the button
- * grid (weight 1.3f vs 2.5f) for a more balanced look.
- */
+
 @Composable
 fun CalculatorScreen(
     viewModel: CalculatorViewModel = viewModel()
 ) {
 
     val state by viewModel.state.collectAsState()
+    val isDarkTheme by viewModel.isDarkTheme.collectAsState()
 
     val buttonRows = listOf(
         listOf("C", "±", "%", "÷"),
@@ -54,28 +50,62 @@ fun CalculatorScreen(
         listOf("0", ".", "=")
     )
 
-    // Detect orientation so we can pick font sizes that always fit comfortably.
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val displayFontSize = if (isLandscape) 36.sp else 48.sp
     val buttonFontSize = if (isLandscape) 18.sp else 26.sp
 
+    // ---------- Color palettes ----------
+    val screenBackground = if (isDarkTheme) Color(0xFF101010) else Color(0xFFF2F2F2)
+    val displayBackground = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)
+    val displayTextColor = if (isDarkTheme) Color.White else Color(0xFF101010)
+    val functionButtonBg = if (isDarkTheme) Color.Gray else Color(0xFFD6D6D6)
+    val numberButtonBg = if (isDarkTheme) Color(0xFF2C2C2C) else Color(0xFFE8E8E8)
+    val numberButtonTextColor = if (isDarkTheme) Color.White else Color(0xFF101010)
+    val operatorButtonBg = Color(0xFFFF9800)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF101010))
+            .background(screenBackground)
             .padding(16.dp)
     ) {
 
-        // Display box: takes 1.3 "shares" of the available vertical space
-        // (increased from 1f so the display is a bit bigger).
+        // Theme toggle row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = if (isDarkTheme) "🌙" else "☀️",
+                fontSize = 18.sp
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Switch(
+                checked = isDarkTheme,
+                onCheckedChange = { viewModel.toggleTheme() },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = operatorButtonBg,
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color.Gray
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1.3f)
                 .background(
-                    Color(0xFF1E1E1E),
+                    displayBackground,
                     RoundedCornerShape(30.dp)
                 )
                 .padding(20.dp),
@@ -84,7 +114,7 @@ fun CalculatorScreen(
 
             Text(
                 text = if (state.expression.isEmpty()) state.display else state.expression,
-                color = Color.White,
+                color = displayTextColor,
                 fontSize = displayFontSize,
                 fontWeight = FontWeight.Bold
             )
@@ -92,8 +122,6 @@ fun CalculatorScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Buttons area: takes 2.5 "shares" of the remaining vertical space
-        // (reduced from 3f so buttons are a bit more compact).
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -112,9 +140,15 @@ fun CalculatorScreen(
                     row.forEach { text ->
 
                         val background = when (text) {
-                            "C", "±", "%" -> Color.Gray
-                            "÷", "×", "-", "+", "=" -> Color(0xFFFF9800)
-                            else -> Color(0xFF2C2C2C)
+                            "C", "±", "%" -> functionButtonBg
+                            "÷", "×", "-", "+", "=" -> operatorButtonBg
+                            else -> numberButtonBg
+                        }
+
+                        val textColor = when (text) {
+                            "÷", "×", "-", "+", "=" -> Color.White
+                            "C", "±", "%" -> if (isDarkTheme) Color.White else Color(0xFF101010)
+                            else -> numberButtonTextColor
                         }
 
                         val buttonWeight =
@@ -133,7 +167,7 @@ fun CalculatorScreen(
                         ) {
                             Text(
                                 text = text,
-                                color = Color.White,
+                                color = textColor,
                                 fontSize = buttonFontSize,
                                 fontWeight = FontWeight.Bold
                             )
