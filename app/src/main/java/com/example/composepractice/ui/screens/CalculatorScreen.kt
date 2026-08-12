@@ -2,6 +2,7 @@ package com.example.composepractice.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,7 +38,9 @@ fun CalculatorScreen(
 ) {
 
     val state by viewModel.state.collectAsState()
-    val isDarkTheme by viewModel.isDarkTheme.collectAsState()
+
+    // Reads the phone's current system theme setting directly.
+    val isDarkTheme = isSystemInDarkTheme()
 
     val buttonRows = listOf(
         listOf("C", "±", "%", "÷"),
@@ -72,34 +72,7 @@ fun CalculatorScreen(
             .padding(16.dp)
     ) {
 
-        // Theme toggle row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Text(
-                text = if (isDarkTheme) "🌙" else "☀️",
-                fontSize = 18.sp
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Switch(
-                checked = isDarkTheme,
-                onCheckedChange = { viewModel.toggleTheme() },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = operatorButtonBg,
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = Color.Gray
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        // Display box: takes 1.3 "shares" of the available vertical space.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,6 +95,7 @@ fun CalculatorScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Buttons area: takes 2.5 "shares" of the remaining vertical space.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
