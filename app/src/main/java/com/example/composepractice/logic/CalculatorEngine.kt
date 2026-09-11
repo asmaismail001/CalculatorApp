@@ -75,7 +75,7 @@ object CalculatorEngine {
                     }
                 }
 
-                first = display.toDoubleOrNull()
+                first = display.toDoubleOrNull() ?: first
                 operator = pressed
                 display = ""
             }
